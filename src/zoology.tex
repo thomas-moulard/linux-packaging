@@ -1,0 +1,338 @@
+% Tiks styles and settings.
+\tikzset{
+  pkgstate/.style={
+    % The shape:
+    rectangle,
+    % The size:
+    minimum size=6mm,
+    % The border:
+    very thick,
+    draw=red!50!black!50,         % 50% red and 50% black,
+                                  % and that mixed with 50% white
+    % The filling:
+    top color=white,              % a shading that is white at the top...
+    bottom color=red!50!black!20, % and something else at the bottom
+    % Font
+    font=\itshape
+  },
+  pkgaction/.style={
+    % The shape:
+    rounded rectangle,
+    minimum size=6mm,
+    % The rest
+    very thick,draw=black!50,
+    top color=white,bottom color=black!20,
+    font=\ttfamily},
+  skip loop/.style={to path={-- ++(0,#1) -| (\tikztotarget)}}
+}
+\tikzset{pkgaction/.append style={text height=1.5ex,text depth=.25ex}}
+\tikzset{pkgstate/.append style={text height=1.5ex,text depth=.25ex}}
+
+
+
+To understand how packaging works, one has first to think about how
+the work is shared between software developpers and \linux
+distributions teams.  Software developpers are writing a specific
+piece of software: they want it to be as broadly available as possible
+(on different \os and on differents architectures). They will be
+choosing develoment tools such as a compiler that will limit the
+portability of their application but no other knowledge of their user
+\os is available for them. Developpers will just make code as generic
+and customizable as possible in order to make it work everywhere.  On
+the opposite, maintainers are writing packages for a specific \linux
+distribution: they do not target other systems and their distribution
+is usually providing support for a limited number of computer
+architectures. They know perfectly well how is organized their users
+system and want to make all the software ecosystem working together as
+best as possible.
+
+
+This is why there exists two kinds of packages under \linux:
+\begin{description}
+\item[Tarballs] provided by software developpers,
+\item[Distribution specific packages] provided by \linux distribution.
+\end{description}
+
+
+The second category of packages is always generated from te first: a
+package is the tarball plus some additional tweaks, fine tuning to
+adapt an application to a distribution and meta-information such as
+the software name, author names\ldots
+
+Packages can then be divided in two categories: source pacakges and
+binary packages. Source packages has to be processed to be useful, it
+contains sources files that can be used to generate the application
+but not the application itself. On the opposite a binary package
+directly contain the application and no further processing is
+required.
+
+
+For a given software a tarball is always available: it is the usual
+way of publishing an application. On the opposite, providing a package
+needs an additional effort which is not always made. This work is
+usually done by volunteers that appreciate a project and thus
+encourage its diffusion on their own distribution. Software popularity
+is usually related to the number and quality of packages available.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[point/.style={coordinate},>=stealth',thick,draw=black!50,
+                    tip/.style={->,shorten >=1pt},every join/.style={rounded corners},
+                    hv path/.style={to path={-| (\tikztotarget)}},
+                    vh path/.style={to path={|- (\tikztotarget)}}]
+  \matrix[column sep=4mm] {
+    % First row:
+    & & & & & & & \node (pkgu) [pkgaction]    {package};
+    & \node (ubuntu) [pkgstate] {Ubuntu package};\\
+    % Second row:
+    \node (p1) [point] {}; & \node (us)  [pkgstate] {unpublished software}; &
+    \node (p2) [point] {}; & \node (rel) [pkgaction]    {release};          &
+    \node (p3) [point] {}; & \node (tb)  [pkgstate] {tarball};\\
+    % Third row:
+    & & & & & & & \node (pkgf) [pkgaction]    {package};
+    & \node (fedora)[pkgstate] {Fedora package};\\
+  };
+
+  { [start chain]
+    \chainin (p1);
+    \chainin (us)  [join=by tip];
+    \chainin (rel) [join=by tip];
+    \chainin (tb)  [join=by tip];
+    { [start branch=ubuntu]
+      \chainin (pkgu)   [join=by {vh path,tip}];
+      \chainin (ubuntu) [join=by tip];
+    }
+    { [start branch=fedora]
+      \chainin (pkgf)   [join=by {vh path,tip}];
+      \chainin (fedora) [join=by tip];
+    }
+  }
+\end{tikzpicture}
+\caption{Packaging workflow}
+\label{fig:software_workflow}
+\end{figure}
+
+As illustrated by \autoref{fig:software_workflow}, providing software
+specific packages is the last step of the packaging: it needs
+additional effort but it is much more convenient for the user: on
+modern distributions, a single command-line or click can install,
+upgrade or remove the software.
+
+
+\subsection{Tarballs}
+
+Project development is divided in different steps: those steps can
+differ depending on the developpers policies but can be categorized in
+three categories:
+\begin{description}
+\item[Initial development] is the steps where features are added to
+  the software. During this phase, it is not recommended for users to
+  rely on the application as many crashes are likely to occur.
+\item[Stabilization] begins where enough features have been added to
+  make the software useful. Developpers stop adding features and try
+  to fix bugs and crashes.
+\item[Test] is the phase where initial releases are done. They are
+  usually named as ``alpha'' (when features are missing) then ``beta''
+  (when bugs happens but most of the features are available) and
+  finally ``release candidate or RC''. Early adopters then try these
+  releases and give feedback to the development team. Depending on the
+  software usability, the alpha becomes a beta and then a release
+  candidate. Each release candidate is a potential definitive version,
+  but if an important problem is detected, then the another RC release
+  is done. This process is repeated as long as severe problems occur.
+\item[Final release] is the last step. When developpers and users
+  agree, a new stable version is released. This is the one that will
+  be used by most of the users.
+\end{description}
+
+This description is just a rough idea of how release are working and
+vary a lot from a project to another. The most important point is that
+as long as there is no stable release, no packaging is done.
+
+
+Software applications are procuded by writing text files called
+``source code'' following a particular syntax called ``programming
+language'' that are compiled to produce binaries (i.e. applications).
+
+This applications also make use of external non-generated files such
+as documentation or images for instance.
+
+To finish, a software project also contain set of rules that describe
+how to compile the project and where to install the different files on
+the user's system.
+
+
+A tarball is only a compressed archive containing these elements. Two
+widely used formats are ``.tar.bz2'' and ``.tar.gz''.
+
+
+
+Regarding end users, installing a software from a tarball is complex:
+you will need the tools required to compile the project and some
+fine-tuning will have to be made by hand. However, the control on the
+software is complete: one can control what features will be enabled or
+not, where the software will be installed\ldots Compiling yourself the
+application can also increase application speed.
+
+
+To finish, there is no meta-information in a tarball: one cannot get a
+list of installed packages from a tarball and automatic updates are
+impossible.
+
+
+\subsection{Source packages}
+
+
+Source packages are meta-information added to a tarball to make it
+usable by a packaging system.
+The added meta-information are typically:
+\begin{description}
+\item[Package tracking] Human readable package title, description,
+  authors list, licensing information and web site URL.
+\item[Compile-time dependencies] Tools used by the compilation process
+  but not required when the application is runned.
+\item[Run-time dependencies] Dependencies that have to remain
+  available on the system each time the package is used such as shared
+  libraries.
+\item[Actions] A list of actions to perform at install, remove,
+  updated (such as adding/removing a shortcut to the desktop).
+\item[Patches] A set of modifications to perform on the software
+  before compiling it in order to fix bugs and tune it for the current
+  \linux distribution.
+\end{description}
+
+
+The packaging tool then stores all the meta-information in a
+database. It allows automatic installation, update and removing.
+
+One advantage of source packaging is that the user can choose the
+installation directory and still has a good control of how the
+software will be compiled without doing it manually.  The drawback is
+that compile tools have to be installed and the compile time is very
+long for complex software (many hours for large desktop applications).
+
+
+\subsection{Binary packages}
+
+
+Binary packaging is more and more popular as it is fully automatic: no
+control is available for the user but it is very simple to use and
+installation is almost instantaneous unlike source packaging. However,
+it needs more effort than source packaging and is not always
+available.
+
+
+If source packaging adds meta-information to the tarball (i.e. to the
+non-compiled software), a binary package adds meta-information to the
+compiled program.
+
+The packaging system install all the files in the same prefix (usually
+\texttt{/usr}) so the user can not choose where the
+software will be installed. The application is compiled once by the
+package maintainer in the pre-determined installation directory.
+However, the maintainer installs the application in a sandbox: an
+empty temporary directory.  This directory will contain all the files
+that would have been copied in the system. The content of the sandbox
+directory and the meta-information file are archived and compressed.
+This compressed archives is the binary package.
+
+
+These source or binary packages are then often gathered in
+``repositories'' to allow automatic retrieving from the package
+management software installed on the user's computer.  A repository
+contains a packages list and the corresponding files: each
+distribution provide one or more default repositories but custom ones
+also exist for minor packages or special versions (unstable or
+dedicated to a particular task).
+
+
+\subsection{Comparison}
+
+The \autoref{fig:package_comparison} illustrates the advantages and
+drawbacks of each packaging style. As expected, the tarball is the
+most complex way of installing software and is not recommanded to
+non-technical users. On the opposite, advanded users are often
+interested to use the new versions of their software before the
+packaging work is done.
+
+
+On the opposite, source and binary packages allows easy installation
+but as the settings are defined by the maintainers, the user does not
+control anymore the fine tuning. For instance, experimental features
+that are considered too unstable might be irreversably disabled by the
+maintainers to ensure the qualitry of their \linux
+distribution. Modifications are also done to better fit the
+distribution: the location of configuration files are often changed to
+match the distribution standard. It can lead to confusion new users
+that read documentation on the web that do no match their system
+package.
+
+
+The last problem is package relocability: a package is said to be
+relocable if the end-user can install it anywhere. However, only a few
+package system support this: most of them force the installation to
+\texttt{/usr}. This directory is only writeable by the
+super-user (i.e. root user) which means that package management has to
+be done by the computer administrator. If one is not the administrator
+of its system, the only choice still remains the installation from the
+tarball.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{tabular}[htbp]{|c|c|c|c|}
+  \hline
+  Packaging style & \textbf{Tarball} & \textbf{Source package} & \textbf{Binary package}\\
+  \hline
+  \emph{Dependency tracking}
+  & \textcolor{red}{no}
+  & \textcolor{green}{yes}
+  & \textcolor{green}{yes}
+  \\
+  \emph{Enable/disable optional features}
+  & \textcolor{green}{yes}
+  & \textcolor{green}{yes}
+  & \textcolor{red}{no}
+  \\
+  \emph{Package removing}
+  & \textcolor{red}{unsafe}
+  & \textcolor{green}{safe}
+  & \textcolor{green}{safe}
+  \\
+  \emph{Installation time}
+  & \textcolor{red}{long}
+  & \textcolor{red}{long}
+  & \textcolor{green}{short}
+  \\
+  \emph{Automatic package management}
+  & \textcolor{red}{no}
+  & \textcolor{green}{yes}
+  & \textcolor{green}{yes}
+  \\
+  \emph{Installation choice}
+  & \textcolor{green}{yes}
+  & \textcolor{green}{yes}
+  & \textcolor{red}{no}
+  \\
+  \emph{Root access}
+  & \textcolor{green}{not needed}
+  & \textcolor{red}{required}
+  & \textcolor{red}{required}
+  \\
+  \emph{Ease of use}
+  & \textcolor{red}{-}
+  & \textcolor{green}{+}
+  & \textcolor{green}{+}
+  \\
+  \emph{Package control}
+  & \textcolor{green}{++}
+  & \textcolor{green}{+}
+  & \textcolor{red}{-}
+  \\
+  \hline
+\end{tabular}
+
+\caption{Comparison of packaging methods}
+\label{fig:package_comparison}
+\end{figure}
+

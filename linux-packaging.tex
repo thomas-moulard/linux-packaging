@@ -1,0 +1,96 @@
+\documentclass[11pt]{article}
+
+\def\xcolorversion{2.00}
+
+\usepackage[version=latest]{pgf}
+
+\usepackage{xkeyval,calc,listings,tikz}
+
+% We need lots of libraries...
+\usetikzlibrary{%
+  arrows,%
+  calc,%
+  fit,%
+  patterns,%
+  plotmarks,%
+  shapes.geometric,%
+  shapes.misc,%
+  shapes.symbols,%
+  shapes.arrows,%
+  shapes.callouts,%
+  shapes.multipart,%
+  shapes.gates.logic.US,%
+  shapes.gates.logic.IEC,%
+  er,%
+  automata,%
+  backgrounds,%
+  chains,%
+  topaths,%
+  trees,%
+  petri,%
+  mindmap,%
+  matrix,%
+  calendar,%
+  folding,%
+  fadings,%
+  through,%
+  positioning,%
+  scopes,%
+  decorations.fractals,%
+  decorations.shapes,%
+  decorations.text,%
+  decorations.pathmorphing,%
+  decorations.pathreplacing,%
+  decorations.footprints,%
+  decorations.markings,%
+  shadows}
+
+\usepackage[a4paper,left=2.25cm,right=2.25cm,top=2.5cm,bottom=2.5cm,nohead]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{xxcolor}
+\usepackage{hyperref}
+
+\newcommand{\os}{\textbf{OS} }
+
+\newcommand{\linux}{\textbf{Linux} }
+\newcommand{\ubuntu}{\textbf{Ubuntu} }
+\newcommand{\debian}{\textbf{Debian} }
+
+\begin{document}
+  \title{Understanding Linux packaging}
+
+  \author{Thomas Moulard}
+  \maketitle
+
+  \pagestyle{empty} %
+  \thispagestyle{empty}
+
+  \tableofcontents
+  \newpage
+
+  \section{Introduction}
+  \label{intro}
+  \input{src/introduction}
+
+  \section{A zoology of packaging systems}
+  \label{zoology}
+  \input{src/zoology}
+
+  \section{What is a software package?}
+  \label{package}
+  \input{src/package}
+
+  \section{Installing a software}
+  \label{install}
+  \input{src/install}
+
+  \appendix
+  \newpage
+
+  \section{GCC compilation profiles}
+  \label{compilation_profiles}
+  \input{src/compilation-profiles}
+
+%  \nocite{*}
+%  \bibliography{linux-packaging}
+\end{document}

@@ -1,0 +1,73 @@
+GCC accept a large set of flags and it would be difficult to discuss them all here. On the opposite, there is only a few amount of user categories:
+\begin{description}
+\item[developpers] or power-users that want to get technical information,,
+\item[maintainers] which want to package the software,
+\item[end-users] that just want to use the package,
+\end{description}
+
+\subsection{Developper profile}
+
+The developper profile:
+\begin{itemize}
+\item allow easy debugging by adding debugging symbols and not enabling optimization.
+\item do not disable assertions.
+\end{itemize}
+
+Basically, this is almost completely the default behavior of GCC so very few options are required:
+\begin{verbatim}
+CFLAGS="-g -O0"
+CXXFLAGS="-g -O0"
+\end{verbatim}
+
+If one only use GDB as a debugger, \texttt{-g} can be replaced by
+\texttt{-ggdb} to enable GDB specific debugging extensions.
+
+\subsection{End-user and maintainer profile}
+
+The end-user profile:
+\begin{itemize}
+\item want to get the application to run as fast as possible,
+\item does not want technical information
+\item wants small binaries.
+\end{itemize}
+
+\begin{verbatim}
+CPPFLAGS="-DNDEBUG"
+CFLAGS="-O3"
+CXXFLAGS="-O3"
+\end{verbatim}
+
+One can also add the \texttt{-march} options to \texttt{CFLAGS} and
+\texttt{CXXFLAGS} to build binaries specific to your platform.  For
+intance, to generate binaries optimized for Intel Core 2 Duo
+processors, one can use \texttt{-march=core2 -msse4.1} (with
+\texttt{GCC >= 4.3}).
+
+To find the options matching your processor, see the compiler
+documentation. Processor information can be displayed using:
+\begin{verbatim}
+$ cat /proc/cpuinfo
+\end{verbatim}
+
+
+The maintainer wants almost the same thing than the end-user except
+that the binaries are built to be shared. It means processor-specific
+flags must be avoided.
+
+
+To finish, aggressive compilations flags can be used to optimize more
+the binaries. Some of these flags are not supported by older versions
+of GCC or may trigger problems or bugs:
+
+\begin{verbatim}
+CPPFLAGS="-DNDEBUG"
+CFLAGS="-O3 -funroll-loops -frerun-loop-opt -fschedule-insns2
+        -frerun-cse-after-loop -falign-functions -falign-labels
+        -falign-loops -falign-jumps -fexpensive-optimizations -ftree-vectorize"
+CXXFLAGS="-O3 -funroll-loops -frerun-loop-opt -fschedule-insns2
+          -frerun-cse-after-loop -falign-functions -falign-labels
+          -falign-loops -falign-jumps -fexpensive-optimizations -ftree-vectorize"
+\end{verbatim}
+
+Additional gains are also possible through the activation of OpenMP
+parallelism extensions.

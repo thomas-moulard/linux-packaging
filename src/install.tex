@@ -1,0 +1,313 @@
+\subsection{\linux Directories overview}
+
+The organization of a \linux file system is completely defined by the
+\emph{Filesystem Hierarchy Standard}.
+
+It is defining the notion of \emph{prefix}. A prefix is a directory
+that will contain the installation of one or more software,
+libraries\ldots
+It contains several standardized sub-directories such as:
+\begin{description}
+  \item[\texttt{bin}] for executable binaries (i.e. applications),
+  \item[\texttt{etc}] for editable configuration files,
+  \item[\texttt{include}] for header files (C/C++ specific).
+  \item[\texttt{lib}] for static and shared libraries,
+  \item[\texttt{share}] for resources. In particular, documentation is\
+    stored in \texttt{share/doc}.
+\end{description}
+
+Some standard prefixes are managed by the system:
+\begin{description}
+\item[\texttt{/}] Root prefix, containt low-level software required
+  for computer boot.
+\item[\texttt{/usr}] stands for Unix System Resources, contains
+  software managed by the local packaging system.
+\item[\texttt{/usr/games}] for games.
+\item[\texttt{/usr/local}] is the default prefix for manually managed
+  software. It means that an automatic packaging system will
+  \emph{never} modify the content of this directory.
+\end{description}
+
+These prefixes are shared: any user can access to them with the
+exception of the \texttt{/usr/games} prefix which is owned by the
+\texttt{games} group. It means that one has to be part of this group
+to run a game.
+
+
+Being a prefix is an absolutely arbitrary and symbolic decisions:
+there is no list of prefixes on the system and a prefix is a
+``normal'' directory. Only its structure can indicate that a directory
+is a prefix.
+
+It also means that a user can create a new prefix to install some
+packages separately. Several reasons can lead to this choice such as
+having the possibility to install development or unstable version of
+some software. As no non-shared prefix is available by default, users
+who do not have root access to their machine have to setup a local
+prefix in their home directory to root access.
+
+
+\subsection{Adding a prefix manually}
+
+Creating a prefix is just adding some directories. Int this section, a
+prefix will be created in the \texttt{/my/new/prefix} directory. Feel
+free to replace it by whatever you want in each command.
+
+\begin{verbatim}
+$ mkdir -p /my/new/prefix  && \
+  mkdir /my/new/prefix/bin && \
+  mkdir /my/new/prefix/lib
+\end{verbatim}
+
+Then, fix directories permissions to give access to the users and
+groups you want. Read-only access is sufficient to use software, write
+access has to be given for people who will be able to manage software
+in this prefix. Directories also have to be traverseable.
+
+
+Additional steps are required so installed files will be found xby
+system tools.
+
+An environment variable is a variable which is passed to the shell
+sub-processes (typically the application you want to launch).  Some of
+them have special meanings and control the system behavior.
+
+In particular the \texttt{PATH} environment variable contains the list
+of the directories where binaries are stored. The binary directory of
+the new prefix has to be prepended to the variable.
+
+For the same reason, \texttt{LIBRARY\_PATH} and
+\texttt{LD\_LIBRARY\_PATH} have to be updated with the new library
+directories. The first one is used by the C/C++ compilers to locate
+libraries whether the second is used to retrieve libraries at run-time
+when an application is launched. \texttt{C\_INCLUDE\_PATH} adds the
+\texttt{include} directory to the list of default header files.
+
+\texttt{INFOPATH} and \texttt{MANPATH} are updated to indicate the new
+documentation directories.
+
+The environment variables modifications can be done through the
+following command lines:
+
+\begin{verbatim}
+# If you use a Bourne shell:
+$ export C_INCLUDE_PATH="/my/new/prefix/include:${C_INCLUDE_PATH}"
+$ export LD_LIBRARY_PATH="/my/new/prefix/lib:${LD_LIBRARY_PATH}"
+$ export LIBRARY_PATH="/my/new/prefix/lib:${LIBRARY_PATH}"
+$ export INFOPATH="/my/new/prefix/share/info:${INFOPATH}"
+$ export MANPATH="/my/new/prefix/share/man:${MANPATH}"
+$ export PATH="/my/new/prefix/bin:${PATH}"
+
+# If you use a C-shell:
+$ setenv C_INCLUDE_PATH "/my/new/prefix/include:${C_INCLUDE_PATH}"
+$ setenv LD_LIBRARY_PATH "/my/new/prefix/lib:${LD_LIBRARY_PATH}"
+$ setenv LDPATH "/my/new/prefix/lib:${LIBRARY_PATH}"
+$ setenv INFOPATH "/my/new/prefix/share/info:${INFOPATH}"
+$ setenv MANPATH "/my/new/prefix/share/man:${MANPATH}"
+$ setenv PATH "/my/new/prefix/bin:${PATH}"
+\end{verbatim}
+
+However, this commands do not change the value of an environment
+variable permanently, it only change it in your local shell
+session. To make the modification global, you have to add them to your
+own shell configuration file (see your shell documentation for more
+information).
+
+To finish, keep in mind that the order in this directory list is
+important: a list is parsed from left to right. It means that if one
+tries to start a program called \texttt{foo}, the leftest prefix
+containing that application will be used.
+
+
+\subsection{Using distribution-specific packages (source or binary)}
+
+
+To use a package, one has to launch the tool that are provided with
+their \linux distribution. Adding or removing files in a managed
+prefix can break permanently a system.
+
+
+The packaging systems currently provide command line tools and graphic
+tools. For instance on \ubuntu, the graphical tool is called
+\texttt{synaptics} whereas the command line tools are \texttt{apt-*}
+tools (\texttt{apt-get}, \texttt{apt-cache}, \ldots).
+
+
+\subsection{Using tarballs}
+
+
+Tarballs are much more difficult to install than packages as the
+process has to be done manually.  The next paragraphs will describe
+step by step how to use a tarball.
+
+
+\subsubsection{Obtaining a tarball}
+
+Most of the projects are providing a tarball using the
+\texttt{.tar.bz2} or \texttt{.tar.gz} formats. Download it on the
+project web page.
+
+They sometimes provide a hashsum of the file to make sure no error
+happened. It is recommended to check that the hashsum matches the
+downloaded file.
+
+
+\subsubsection{Uncompressing a tarball}
+
+
+A tarball is a \textbf{compressed archive}. It is created by two
+separate steps: archiving and compression.
+
+Archiving is the process of taking several files and directories and
+put them in a single file. This file is called an archive. The most
+common archiver is \texttt{tar} and produced \texttt{tar} files
+(i.e. \texttt{my-software.tar}\footnote{and not
+  \texttt{my-software.tar.something}!}).
+
+The compression is a second process which takes one or several files
+and then compress it/them. Two popular algorithms and gzip and bzip
+producing respectively \texttt{gz} files and \texttt{bzip} files.
+
+Indeed, a \texttt{.tar.bz2} file is an archive that has been
+compressed using the bzip algorithm.
+
+
+To uncompress and unarchive a file, one can type:
+\begin{verbatim}
+# For a bzipped tarball:
+$ tar xjvf my-software.tar.bz2
+# For a gzipped tarball:
+$ tar xzvf my-software.tar.gz
+\end{verbatim}
+
+A good and widely respected practice under \linux is that tarballs
+contains a single directory with the same name as the archive
+containing its whole content. It avoids mixing the tarball's contents
+with the user's files.
+
+
+\subsubsection{Configuring}
+
+
+Once the tarball is uncompressed, user has to setup the package by
+launching the \texttt{configure} script shell.
+
+A wise idea is reading the \texttt{INSTALL}, \texttt{README} and
+\texttt{NEWS} files to read about specific issues and last
+modification of the software.
+
+Then \texttt{./configure --help} will display the list of options for
+the package. The standard options will be discussed here but specific
+ones such as optional features will differ from pacakge to package.
+
+
+It is generally a good idea to compile out of source. It means that
+generated files will be stored in a separate directory instead of the
+source directories. By doing it, one just have to change its build
+directory to restart from scratch without error. Generated files which
+are not deleted properly are the source of many compilation errors.
+
+To build out of source, just choose a directory and call the
+\texttt{configure} script from it. For instance, one can create a
+\texttt{\_build} directory at the root-level of the uncompressed
+package:
+
+\begin{verbatim}
+# To be runned in the package root directory:
+$ mkdir _build && cd _build && ../configure
+\end{verbatim}
+
+
+However, one might want to customize the package, it can be done
+through options or environment variables.
+
+
+Several standard options are provided:
+\begin{description}
+\item[\texttt{--prefix}] The prefix that will be used for installation
+\item[\texttt{--XXXdir}] Binary, resources directories\ldots can also
+  be defined by hand instead of being its default prefix
+  sub-directory.
+\item[\texttt{--program-prefix}, \texttt{--program-suffix},
+  \texttt{--program-transform-name}] are useful options used to
+  transform program name. It is used to install several version of the
+  same program without any conflict.
+\item[\texttt{--host}] can be used for cross-compiling (i.e. compiling
+  for a platform different from the computer running the compilation).
+\end{description}
+
+
+The environment variables control the behavior of the compiler. Here
+is some tips for C/C++ packages which represent the larger part of the
+software packages:
+
+\begin{description}
+\item[\texttt{CC}] defines the C compiler.
+\item[\texttt{CXX}] defines the C++ compiler.
+\item[\texttt{CPPFLAGS}] defines the flags that will be passed to the
+  C/C++ pre-processor.
+\item[\texttt{CFLAGS}] defines the flags that will be passed to the C
+  compiler.
+\item[\texttt{CXXFLAGS}] defines the flags that will be passed to the
+  C++ compiler.
+\item[\texttt{LDFLAGS}] defines the flags that will be passed to the
+  linker.
+\end{description}
+
+Flags passed to the pre-processor and to the linker are usually only
+custom header and libraries locations. On the opposite,
+\texttt{CFLAGS} and \texttt{CXXFLAGS} controls how the compiler will
+build the binaries.
+
+Compilers accept a huge set of options which will not be described
+here. Please consult your compiler documentation for the best set of
+options depending on your goal (debug, release, packaging) and
+platform. Some general purpose compilation profiles are available in
+\autoref{compilation_profiles}.
+
+
+\subsubsection{Building and installing}
+
+
+Once the package is configured, you build directory contains
+\texttt{Makefile} files that can be used to build the software.
+Only one command line is required:
+
+\begin{verbatim}
+$ make
+\end{verbatim}
+
+
+It starts the package compilation process which can take up to several
+hours. When it is finished, you can install the package through the
+following command:
+
+\begin{verbatim}
+$ make install
+# ...or if install is done in a directory the current user can not write in:
+$ sudo make install
+\end{verbatim}
+
+It is important to \emph{not} launch the first \emph{make} command as
+a super-user: it is unsafe (a bad or malicious package could damage
+your system), unneeded and create object files owned by the root user
+that will disturb your work if you have to re-use your build
+directory.
+
+
+To check the installation step without root access, one can install in a sandbox by using:
+\begin{verbatim}
+$ make install DESTDIR=/my/temporary/prefix
+\end{verbatim}
+
+It will simulate that the \texttt{DESTDIR} directory is the root
+directory. It will create the path to your prefix \textbf{inside} and
+install everything. If your prefix is \texttt{foo}, your binary
+directory \texttt{foo/bin} and you are building a programm called
+\texttt{bar}, it will install it in
+\texttt{/my/temporary/prefix/foo/bin/bar}.  This feature is
+interesting when building a binary package: one configure the software
+using the prefix wanted by the packaging system (usually
+\texttt{/usr}), compile and install the whole package in a
+sandbox. You then get a snapshot of the build package which is very
+easy to transform into a full binary package.
